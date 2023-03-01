@@ -1,7 +1,7 @@
 import { getCategoryImage } from "../constants/image";
 import type { Restaurant } from "../types/restaurant";
 
-const createRestaurantCard = (restaurant: Restaurant) => `
+const createRestaurantCard = (restaurant: Restaurant): string => `
   <li class="restaurant">
     <div class="restaurant__category">
       <img
