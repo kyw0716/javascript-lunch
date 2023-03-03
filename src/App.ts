@@ -1,4 +1,4 @@
-import type { Category, Distance } from "./types/restaurant";
+import type { Category, Distance, Restaurant } from "./types/restaurant";
 import type { CategoryOption, SortOption } from "./types/option";
 
 import createCustomSelect from "./components/CustomSelect";
@@ -6,6 +6,8 @@ import createCustomModal from "./components/CustomModal";
 import createCustomHeader from "./components/CustomHeader";
 import createRestaurantCardList from "./components/RestaurantCardList";
 import Restaurants from "./domain/Restaurants";
+import { CustomModal } from "./components/CustomModal";
+import RestaurantAddForm from "./components/RestaurantAddForm";
 
 class App {
   #modal: HTMLElement | null;
@@ -27,13 +29,14 @@ class App {
     };
     this.init();
 
-    this.#modal = document.querySelector(".modal");
+    this.#modal = document.querySelector("custom-modal");
   }
 
   init() {
     createCustomSelect();
     createCustomModal();
     createCustomHeader();
+    customElements.define("restaurant-add-form", RestaurantAddForm);
 
     this.renderContainer();
   }
@@ -51,7 +54,7 @@ class App {
             this.#restaurants.getListByOption(this.#showState)
           )}
         </section>
-        <custom-modal></custom-modal>
+        <custom-modal class="modal"></custom-modal>
       </main>
     `;
   }
@@ -88,11 +91,24 @@ class App {
   }
 
   openModal() {
-    this.#modal?.classList.add("modal--open");
+    const customModal = document.querySelector("custom-modal");
+
+    if (!(customModal instanceof CustomModal)) return;
+
+    customModal.renderContent("<restaurant-add-form></restaurant-add-form>");
+
+    const restaurantAddForm = document.querySelector("restaurant-add-form");
+    (restaurantAddForm as RestaurantAddForm).bindEvent(this.add.bind(this));
+
+    customModal.open();
   }
 
   closeModal() {
-    this.#modal?.classList.remove("modal--open");
+    const customModal = document.querySelector("custom-modal");
+
+    if (!(customModal instanceof CustomModal)) return;
+
+    customModal.close();
   }
 
   renderRestaurantList() {
@@ -126,6 +142,20 @@ class App {
       description,
       link,
     });
+  }
+
+  add(restaurant: Restaurant) {
+    this.#restaurants.add(restaurant);
+
+    localStorage.setItem(
+      "restaurants",
+      JSON.stringify(
+        this.#restaurants.getListByOption({ filter: "전체", sort: "name" })
+      )
+    );
+
+    this.renderRestaurantList();
+    this.closeModal();
   }
 
   resetModalValue() {
